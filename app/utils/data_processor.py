@@ -1,6 +1,7 @@
 import pandas as pd
 import glob
 import os
+import numpy as np
 
 # Define the directory path relative to the script location
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -45,6 +46,28 @@ def load_and_combine_call_data(directory=DATA_DIR):
     combined_df = combined_df.drop_duplicates(subset=['Time'])
     
     return combined_df
+
+def process_call_data(file):
+    """Process uploaded call data file"""
+    if file.name.endswith('.csv'):
+        df = pd.read_csv(file)
+    elif file.name.endswith('.xlsx'):
+        df = pd.read_excel(file)
+    else:
+        raise ValueError("Unsupported file format")
+    
+    # Your existing data processing code here
+    df['DateTime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], 
+                                  format='%d/%m/%Y %H:%M',
+                                  dayfirst=True)
+    
+    return df
+
+def load_demo_data():
+    """Load synthetic demo data"""
+    # Create synthetic data similar to your real data
+    # This can be based on your current dataset
+    return demo_df
 
 if __name__ == "__main__":
     try:

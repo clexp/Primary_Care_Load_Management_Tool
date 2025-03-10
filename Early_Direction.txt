@@ -1,0 +1,34 @@
+### Early direction:  
+
+#### Current Assets:
+process_call_data.py: Data loading and preprocessing
+app.py: Streamlit app with Erlang-A calculator
+Initial data analysis with both Gaussian and Poisson approaches
+
+
+#### Next Steps (in priority order):
+Create Initial Web App MVP 
+Data Upload & Processing (immediate next step)
+Quick Insights Page (next priority)
+Predictions Page (incorporating ML)
+Use Random Forests for initial predictions
+Add Bayesian analysis for uncertainty
+Include staff planning recommendations
+#### Development Plan:
+Week 1-2:
+Set up basic Streamlit app structure
+Implement data upload and processing
+Create basic visualizations
+Week 3-4:
+Add prediction models
+Implement staff planning calculator
+Create synthetic data generator
+Week 5-6:
+Add Bayesian analysis
+Implement multi-site support
+Add export functionality
+
+#### Next steps:
+- Prioritize Features
+- Focus on implementation
+- Think through architecture
