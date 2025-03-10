@@ -1,4 +1,10 @@
 import streamlit as st
+import sys
+from pathlib import Path
+
+# Add the root directory to Python path
+root_path = Path(__file__).parent
+sys.path.append(str(root_path))
 
 st.set_page_config(
     page_title="Primary Care Load Management Tool",

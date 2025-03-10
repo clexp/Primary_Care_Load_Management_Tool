@@ -1,13 +1,15 @@
 # In 02_Quick_Insights.py
 import streamlit as st
+import pandas as pd
 import sys
-import os
+from pathlib import Path
 
-# Add the app directory to the Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add the root directory to Python path
+root_path = Path(__file__).parent.parent
+sys.path.append(str(root_path))
 
-from utils.visualizations import (plot_daily_patterns, plot_wait_times, 
-                                plot_weekday_patterns, plot_heatmap)
+from app.utils.visualizations import (plot_daily_patterns, plot_wait_times, 
+                                    plot_weekday_patterns, plot_heatmap)
 
 def quick_insights_page():
     if 'call_data' not in st.session_state:
