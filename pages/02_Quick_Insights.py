@@ -8,8 +8,10 @@ from pathlib import Path
 root_path = Path(__file__).parent.parent
 sys.path.append(str(root_path))
 
-from app.utils.visualizations import (plot_daily_patterns, plot_wait_times, 
-                                    plot_weekday_patterns, plot_heatmap)
+from app.utils.visualizations import (plot_daily_patterns, plot_wait_times,
+                                    plot_weekday_patterns, plot_weekday_averages,
+                                    plot_individual_weekday_patterns,
+                                    plot_connection_rates)
 
 def quick_insights_page():
     if 'call_data' not in st.session_state:
@@ -19,8 +21,11 @@ def quick_insights_page():
     df = st.session_state['call_data']
     
     # Add tabs for different visualizations
-    tab1, tab2, tab3, tab4 = st.tabs(["Daily Patterns", "Wait Times", 
-                                     "Weekday Patterns", "Heatmap"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "Daily Patterns", "Wait Times", 
+        "Weekday Distribution", "Weekday Averages",
+        "Connection Rates"
+    ])
     
     with tab1:
         st.plotly_chart(plot_daily_patterns(df), use_container_width=True)
@@ -32,7 +37,11 @@ def quick_insights_page():
         st.plotly_chart(plot_weekday_patterns(df), use_container_width=True)
     
     with tab4:
-        st.plotly_chart(plot_heatmap(df), use_container_width=True)
+        st.plotly_chart(plot_weekday_averages(df), use_container_width=True)
+        st.plotly_chart(plot_individual_weekday_patterns(df), use_container_width=True)
+    
+    with tab5:
+        st.plotly_chart(plot_connection_rates(df), use_container_width=True)
     
     # Key metrics
     st.subheader("Key Metrics")

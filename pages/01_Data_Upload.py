@@ -1,130 +1,81 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
+from pathlib import Path
+import glob
 
-def generate_demo_data():
-    """Generate synthetic call center data"""
-    # Create date range for one month
-    start_date = datetime(2024, 4, 1)
-    dates = []
-    times = []
-    total_calls = []
-    connected_calls = []
-    wait_times = []
-    
-    # Generate data for each half hour between 8 AM and 6 PM
-    for day in range(30):
-        current_date = start_date + timedelta(days=day)
-        if current_date.weekday() < 5:  # Monday to Friday only
-            for hour in range(8, 18):
-                for minute in [0, 30]:
-                    dates.append(current_date.strftime('%d/%m/%Y'))
-                    times.append(f"{hour:02d}:{minute:02d}")
-                    
-                    # Generate realistic call volumes
-                    base_calls = 50 if 9 <= hour <= 15 else 30
-                    total = int(np.random.normal(base_calls, 10))
-                    connected = int(total * np.random.uniform(0.7, 0.9))
-                    wait_time = np.random.exponential(180)  # average 3 minutes
-                    
-                    total_calls.append(max(0, total))
-                    connected_calls.append(max(0, min(connected, total)))
-                    wait_times.append(max(0, wait_time))
-    
-    # Create DataFrame
-    df = pd.DataFrame({
-        'Date': dates,
-        'Time': times,
-        'Total Calls': total_calls,
-        'Connected Calls': connected_calls,
-        'Calls Not Connected': [t - c for t, c in zip(total_calls, connected_calls)],
-        'Avg Wait Time (s)': wait_times,
-        'Longest Wait Time (s)': [w * 1.5 for w in wait_times]
-    })
-    
-    return df
+def load_and_process_csv(file):
+    """Load and process a single CSV file"""
+    try:
+        df = pd.read_csv(file)
+        # Convert Time column to datetime
+        df['Time'] = pd.to_datetime(df['Time'])
+        return df
+    except Exception as e:
+        st.error(f"Error processing {file.name}: {str(e)}")
+        return None
 
 def data_upload_page():
-    st.title("Upload Call Center Data 📊")
+    st.title("Data Upload 📊")
     
-    st.write("""
-    ### Upload your call center data
-    You can upload CSV files exported from your phone system. The file should contain:
-    - Time information
-    - Total number of calls
-    - Connected and disconnected calls
-    - Wait times
-    """)
-    
-    # File upload section
-    st.subheader("Upload Data")
-    uploaded_file = st.file_uploader(
-        "Choose a CSV file", 
-        type=['csv'], 
-        help="Upload a CSV file containing your call center data"
+    # File uploader for multiple files
+    uploaded_files = st.file_uploader(
+        "Upload Call Data Files (CSV)",
+        type=['csv'],
+        accept_multiple_files=True,
+        help="Upload multiple CSV files with call data. Files should have the same structure."
     )
     
-    # Demo data section
-    st.subheader("Or Use Demo Data")
-    use_demo = st.checkbox("Use demo data instead", 
-                          help="Generate synthetic data to try out the tool")
-    
-    if uploaded_file is not None:
-        try:
-            # Read the CSV file
-            df = pd.read_csv(uploaded_file)
+    if uploaded_files:
+        # Process each file
+        all_data = []
+        for file in uploaded_files:
+            df = load_and_process_csv(file)
+            if df is not None:
+                all_data.append(df)
+        
+        if all_data:
+            # Combine all dataframes
+            combined_df = pd.concat(all_data, ignore_index=True)
             
-            # Remove the "Total" row before processing
-            df = df[df['Time'] != "Total"].copy()
+            # Store in session state
+            st.session_state['call_data'] = combined_df
             
-            # Convert Time column to datetime
-            df['DateTime'] = pd.to_datetime(df['Time'])
+            # Show summary statistics
+            st.success(f"Successfully loaded {len(uploaded_files)} files!")
             
-            st.session_state['call_data'] = df
-            st.success("✅ Data loaded successfully!")
-            
-            # Preview the data
-            st.subheader("Data Preview")
-            st.dataframe(df.head())
-            
-            # Show basic statistics
-            st.subheader("Basic Statistics")
+            # Display data summary
+            st.subheader("Data Summary")
             col1, col2, col3 = st.columns(3)
+            
             with col1:
-                st.metric("Total Records", len(df))
+                st.metric("Total Records", len(combined_df))
             with col2:
                 st.metric("Date Range", 
-                         f"{df['DateTime'].min().date()} to {df['DateTime'].max().date()}")
+                         f"{combined_df['Time'].min().strftime('%Y-%m-%d')} to {combined_df['Time'].max().strftime('%Y-%m-%d')}")
             with col3:
-                st.metric("Total Calls", df['Total Calls'].sum())
+                st.metric("Total Calls", combined_df['Total Calls'].sum())
             
-        except Exception as e:
-            st.error(f"Error loading file: {str(e)}")
-            st.error("Debug info:")
-            if 'df' in locals():
-                st.write("Columns in file:", df.columns.tolist())
-                st.write("First few Time values:", df['Time'].head())
+            # Show sample of the data
+            st.subheader("Sample Data")
+            st.dataframe(combined_df.head())
             
-    elif use_demo:
-        df = generate_demo_data()
-        df['DateTime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], 
-                                      format='%d/%m/%Y %H:%M',
-                                      dayfirst=True)
-        st.session_state['call_data'] = df
-        st.success("✅ Demo data loaded!")
-        
-        # Preview the demo data
-        st.subheader("Demo Data Preview")
-        st.dataframe(df.head())
-        
-        st.info("""
-        ℹ️ This is synthetic data generated for demonstration purposes. 
-        It simulates a typical call center pattern with:
-        - Higher volumes during business hours
-        - Random variations in call volumes
-        - Realistic wait times and connection rates
-        """)
+            # Show data quality metrics
+            st.subheader("Data Quality")
+            missing_data = combined_df.isnull().sum()
+            if missing_data.any():
+                st.warning("Missing Data:")
+                st.write(missing_data[missing_data > 0])
+            else:
+                st.success("No missing data found!")
+            
+            # Add download button for combined data
+            csv = combined_df.to_csv(index=False)
+            st.download_button(
+                label="Download Combined Data",
+                data=csv,
+                file_name="combined_call_data.csv",
+                mime="text/csv"
+            )
 
 if __name__ == "__main__":
     data_upload_page()
