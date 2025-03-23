@@ -3,6 +3,8 @@ import streamlit as st
 import math
 import numpy as np
 import scipy.special as sc
+import pandas as pd
+from datetime import datetime, time
 
 # Set page configuration must come first
 st.set_page_config(
@@ -92,6 +94,37 @@ with st.sidebar:
         value=10.0,
         help="Average time a caller will wait before abandoning"
     )
+
+    # Add this after the existing sidebar inputs
+    st.header("Staffing Data")
+    staffing_file = st.file_uploader(
+        "Upload Staffing Schedule (CSV)",
+        type=['csv'],
+        help="Upload a CSV file with staffing schedule. See sample_staffing.csv for format."
+    )
+
+    if staffing_file is not None:
+        try:
+            staffing_df = pd.read_csv(staffing_file)
+            st.success("Staffing data loaded successfully!")
+            
+            # Display staffing summary
+            st.subheader("Staffing Summary")
+            total_staff = staffing_df.groupby('staff_type')['number_of_staff'].sum()
+            st.write(total_staff)
+            
+            # Use the staffing data for calculations
+            current_staff = staffing_df[
+                (staffing_df['date'] == datetime.now().strftime('%Y-%m-%d')) &
+                (staffing_df['start_time'] <= datetime.now().strftime('%H:%M')) &
+                (staffing_df['end_time'] > datetime.now().strftime('%H:%M'))
+            ]
+            
+            if not current_staff.empty:
+                num_agents = current_staff['number_of_staff'].sum()
+                st.info(f"Current active staff: {num_agents}")
+        except Exception as e:
+            st.error(f"Error loading staffing data: {str(e)}")
 
 # Main content
 st.header("Results")
