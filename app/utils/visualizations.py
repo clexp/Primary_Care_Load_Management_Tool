@@ -4,6 +4,11 @@ from plotly.subplots import make_subplots
 import pandas as pd
 import numpy as np
 from datetime import datetime
+from scipy.optimize import curve_fit
+
+def log_normal(x, a, b, c):
+    """Log-normal function for curve fitting"""
+    return a * np.exp(-(np.log(x - b) - c)**2 / 2)
 
 def plot_daily_patterns(df):
     """Plot daily call patterns with scatter points only"""
@@ -63,7 +68,7 @@ def plot_weekday_averages(df):
     return fig
 
 def plot_individual_weekday_patterns(df):
-    """Plot individual weekday patterns in separate subplots"""
+    """Plot individual weekday patterns with fitted curves and confidence intervals"""
     df['Time'] = pd.to_datetime(df['Time'])
     df['Weekday'] = df['Time'].dt.day_name()
     df['Hour'] = df['Time'].dt.hour
@@ -77,31 +82,76 @@ def plot_individual_weekday_patterns(df):
         day_data = df[df['Weekday'] == day]
         hourly_avg = day_data.groupby('Hour')['Total Calls'].mean()
         
-        # Fit a log-normal curve
+        # Prepare data for curve fitting
         x = np.arange(24)
         y = hourly_avg.values
-        # Simple log-normal fit
-        mu = np.mean(np.log(y + 1))
-        sigma = np.std(np.log(y + 1))
-        fitted_y = np.exp(mu + sigma * np.random.randn(24))
         
-        fig.add_trace(
-            go.Scatter(x=x, y=y, mode='markers', name=f'{day} Actual',
-                      marker=dict(size=8), showlegend=False),
-            row=idx, col=1
-        )
-        fig.add_trace(
-            go.Scatter(x=x, y=fitted_y, mode='lines', name=f'{day} Fitted',
-                      line=dict(color='red'), showlegend=False),
-            row=idx, col=1
-        )
+        # Fit the curve
+        try:
+            # Initial guess for parameters
+            p0 = [np.max(y), 0, 0]
+            popt, pcov = curve_fit(log_normal, x, y, p0=p0)
+            
+            # Generate fitted curve
+            fitted_y = log_normal(x, *popt)
+            
+            # Calculate confidence intervals
+            perr = np.sqrt(np.diag(pcov))
+            ci = 1.96 * perr  # 95% confidence interval
+            
+            # Add actual data points
+            fig.add_trace(
+                go.Scatter(x=x, y=y, mode='markers', 
+                          name=f'{day} Actual',
+                          marker=dict(size=8, color='blue')),
+                row=idx, col=1
+            )
+            
+            # Add fitted curve
+            fig.add_trace(
+                go.Scatter(x=x, y=fitted_y, mode='lines',
+                          name=f'{day} Fitted',
+                          line=dict(color='red', width=2)),
+                row=idx, col=1
+            )
+            
+            # Add confidence intervals
+            fig.add_trace(
+                go.Scatter(x=x, y=fitted_y + ci[0],
+                          mode='lines',
+                          line=dict(width=0),
+                          showlegend=False),
+                row=idx, col=1
+            )
+            fig.add_trace(
+                go.Scatter(x=x, y=fitted_y - ci[0],
+                          mode='lines',
+                          line=dict(width=0),
+                          fill='tonexty',
+                          name=f'{day} 95% CI'),
+                row=idx, col=1
+            )
+            
+        except RuntimeError as e:
+            # If curve fitting fails, just plot the actual data
+            fig.add_trace(
+                go.Scatter(x=x, y=y, mode='markers',
+                          name=f'{day} Data',
+                          marker=dict(size=8)),
+                row=idx, col=1
+            )
     
     fig.update_layout(
         height=1000,
-        title_text="Call Volume Patterns by Weekday",
-        showlegend=False,
+        title_text="Call Volume Patterns by Weekday with Fitted Curves",
+        showlegend=True,
         template='plotly_white'
     )
+    
+    # Update y-axis labels for each subplot
+    for i in range(1, 6):
+        fig.update_yaxes(title_text="Number of Calls", row=i, col=1)
+    
     return fig
 
 def plot_connection_rates(df):
