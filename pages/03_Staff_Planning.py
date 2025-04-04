@@ -142,9 +142,9 @@ def staff_planning_page():
                 for day in results.columns:
                     # Filter data for this time slot and day
                     mask = (
-                        (df['DateTime'].dt.hour == hour) &
-                        (df['DateTime'].dt.minute == minute) &
-                        (df['DateTime'].dt.day_name() == day)
+                        (df['Time'].dt.hour == hour) &
+                        (df['Time'].dt.minute == minute) &
+                        (df['Time'].dt.day_name() == day)
                     )
                     
                     if len(df[mask]) > 0:

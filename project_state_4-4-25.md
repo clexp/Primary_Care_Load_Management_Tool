@@ -97,4 +97,12 @@ Prepare a presentation for the customer
 - Data upload on front page and on the upload page
 - Upload page uses broken
 - rename the front page and add a graphic
--
+- Daily Patterns need to show week days only, and have lines and confidence intervals
+- Wait times 'averages' but what are they really?
+- Weekday Distribution, is this meaningful?
+- Weekday Averages, is this meaningful?
+- Connection rates? What dose this mean?
+- recalculates everything each time we click quick insights.
+- add a 'download template' button to get a sample excel file
+- add a staffing upload button.
+- Percentage slider does not show the percent on the staffing pane.

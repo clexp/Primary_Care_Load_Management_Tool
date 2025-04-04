@@ -8,7 +8,11 @@ from scipy.optimize import curve_fit
 
 def log_normal(x, a, b, c):
     """Log-normal function for curve fitting"""
-    return a * np.exp(-(np.log(x - b) - c)**2 / 2)
+    # Ensure x - b is always positive to avoid log of negative or zero
+    x_shifted = x - b
+    # Add a small epsilon to avoid log(0)
+    x_shifted = np.maximum(x_shifted, 1e-10)
+    return a * np.exp(-(np.log(x_shifted) - c)**2 / 2)
 
 def plot_daily_patterns(df):
     """Plot daily call patterns with scatter points only"""
@@ -80,78 +84,59 @@ def plot_individual_weekday_patterns(df):
     weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
     for idx, day in enumerate(weekdays, 1):
         day_data = df[df['Weekday'] == day]
-        hourly_avg = day_data.groupby('Hour')['Total Calls'].mean()
+        
+        # Create a complete hour range from 0 to 23
+        all_hours = pd.DataFrame({'Hour': range(24)})
+        
+        # Calculate average calls for each hour, ensuring all hours are represented
+        hourly_avg = day_data.groupby('Hour')['Total Calls'].mean().reset_index()
+        hourly_avg = pd.merge(all_hours, hourly_avg, on='Hour', how='left')
+        
+        # Fill NaN values with 0 for visualization
+        hourly_avg['Total Calls'] = hourly_avg['Total Calls'].fillna(0)
         
         # Prepare data for curve fitting
-        x = np.arange(24)
-        y = hourly_avg.values
+        x = hourly_avg['Hour'].values
+        y = hourly_avg['Total Calls'].values
         
-        # Fit the curve
-        try:
-            # Initial guess for parameters
-            p0 = [np.max(y), 0, 0]
-            popt, pcov = curve_fit(log_normal, x, y, p0=p0)
-            
-            # Generate fitted curve
-            fitted_y = log_normal(x, *popt)
-            
-            # Calculate confidence intervals
-            perr = np.sqrt(np.diag(pcov))
-            ci = 1.96 * perr  # 95% confidence interval
-            
-            # Add actual data points
-            fig.add_trace(
-                go.Scatter(x=x, y=y, mode='markers', 
-                          name=f'{day} Actual',
-                          marker=dict(size=8, color='blue')),
-                row=idx, col=1
-            )
-            
-            # Add fitted curve
-            fig.add_trace(
-                go.Scatter(x=x, y=fitted_y, mode='lines',
-                          name=f'{day} Fitted',
-                          line=dict(color='red', width=2)),
-                row=idx, col=1
-            )
-            
-            # Add confidence intervals
-            fig.add_trace(
-                go.Scatter(x=x, y=fitted_y + ci[0],
-                          mode='lines',
-                          line=dict(width=0),
-                          showlegend=False),
-                row=idx, col=1
-            )
-            fig.add_trace(
-                go.Scatter(x=x, y=fitted_y - ci[0],
-                          mode='lines',
-                          line=dict(width=0),
-                          fill='tonexty',
-                          name=f'{day} 95% CI'),
-                row=idx, col=1
-            )
-            
-        except RuntimeError as e:
-            # If curve fitting fails, just plot the actual data
-            fig.add_trace(
-                go.Scatter(x=x, y=y, mode='markers',
-                          name=f'{day} Data',
-                          marker=dict(size=8)),
-                row=idx, col=1
-            )
+        # Add scatter plot of actual data
+        fig.add_trace(
+            go.Scatter(x=x, y=y, mode='markers', name=f'{day} Data'),
+            row=idx, col=1
+        )
+        
+        # Fit the curve only if we have enough non-zero data points
+        non_zero_mask = y > 0
+        if np.sum(non_zero_mask) > 3:
+            try:
+                # Use only non-zero data points for fitting
+                x_fit = x[non_zero_mask]
+                y_fit = y[non_zero_mask]
+                
+                # Initial guess for parameters - more robust
+                p0 = [np.max(y_fit), 
+                      np.min(x_fit) - 1,  # Ensure b is less than min(x)
+                      np.mean(np.log(np.maximum(y_fit, 1e-10)))]
+                
+                popt, pcov = curve_fit(log_normal, x_fit, y_fit, p0=p0, maxfev=10000)
+                
+                # Generate fitted curve for all hours
+                fitted_y = log_normal(x, *popt)
+                
+                # Add fitted curve to plot
+                fig.add_trace(
+                    go.Scatter(x=x, y=fitted_y, mode='lines', name=f'{day} Fit'),
+                    row=idx, col=1
+                )
+            except Exception as e:
+                print(f"Error fitting curve for {day}: {str(e)}")
+                # Continue without the fitted curve
+        
+        # Update subplot layout
+        fig.update_xaxes(title_text="Hour of Day", row=idx, col=1)
+        fig.update_yaxes(title_text="Average Calls", row=idx, col=1)
     
-    fig.update_layout(
-        height=1000,
-        title_text="Call Volume Patterns by Weekday with Fitted Curves",
-        showlegend=True,
-        template='plotly_white'
-    )
-    
-    # Update y-axis labels for each subplot
-    for i in range(1, 6):
-        fig.update_yaxes(title_text="Number of Calls", row=i, col=1)
-    
+    fig.update_layout(height=1000, showlegend=True, template='plotly_white')
     return fig
 
 def plot_connection_rates(df):
