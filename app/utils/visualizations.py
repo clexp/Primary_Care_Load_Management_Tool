@@ -291,3 +291,79 @@ def create_heatmap_of_call_volumes(df):
     )
     
     return fig
+
+def plot_hourly_abandonment(df):
+    """Plot hourly abandonment rates with correlation to wait times"""
+    df['Time'] = pd.to_datetime(df['Time'])
+    df['Hour'] = df['Time'].dt.hour
+    df['Weekday'] = df['Time'].dt.day_name()
+    
+    # Calculate abandonment rate
+    df['Abandonment Rate'] = df['Calls Not Connected'] / df['Total Calls'] * 100
+    
+    # Create a figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    
+    # Group by hour and calculate average abandonment rate and wait time
+    hourly_data = df.groupby('Hour').agg({
+        'Abandonment Rate': 'mean',
+        'Avg Wait Time (s)': 'mean',
+        'Total Calls': 'sum'
+    }).reset_index()
+    
+    # Add abandonment rate as a bar chart
+    fig.add_trace(
+        go.Bar(
+            x=hourly_data['Hour'],
+            y=hourly_data['Abandonment Rate'],
+            name="Abandonment Rate (%)",
+            marker_color='rgba(255, 99, 71, 0.7)'
+        ),
+        secondary_y=False
+    )
+    
+    # Add wait time as a line
+    fig.add_trace(
+        go.Scatter(
+            x=hourly_data['Hour'],
+            y=hourly_data['Avg Wait Time (s)'],
+            name="Avg Wait Time (s)",
+            line=dict(color='blue', width=2)
+        ),
+        secondary_y=True
+    )
+    
+    # Add call volume as a line with different color
+    fig.add_trace(
+        go.Scatter(
+            x=hourly_data['Hour'],
+            y=hourly_data['Total Calls'],
+            name="Total Calls",
+            line=dict(color='green', width=2)
+        ),
+        secondary_y=True
+    )
+    
+    # Calculate correlation between abandonment rate and wait time
+    correlation = df['Abandonment Rate'].corr(df['Avg Wait Time (s)'])
+    
+    # Update layout
+    fig.update_layout(
+        title=f'Hourly Abandonment Rates vs Wait Times (Correlation: {correlation:.2f})',
+        xaxis_title="Hour of Day",
+        hovermode="x unified",
+        template="plotly_white",
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        )
+    )
+    
+    # Update y-axes labels
+    fig.update_yaxes(title_text="Abandonment Rate (%)", secondary_y=False)
+    fig.update_yaxes(title_text="Wait Time (s) / Call Volume", secondary_y=True)
+    
+    return fig
