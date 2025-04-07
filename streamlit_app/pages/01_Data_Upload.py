@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 root_path = Path(__file__).parent.parent
 sys.path.append(str(root_path))
 
-from app.utils.data_processor import (
+from streamlit_app.utils.data_processor import (
     create_call_data_template, 
     process_call_data, 
     load_and_combine_call_data,

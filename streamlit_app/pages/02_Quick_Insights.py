@@ -8,7 +8,7 @@ from pathlib import Path
 root_path = Path(__file__).parent.parent
 sys.path.append(str(root_path))
 
-from app.utils.visualizations import (plot_daily_patterns, plot_wait_times,
+from streamlit_app.utils.visualizations import (plot_daily_patterns, plot_wait_times,
                                     plot_weekday_patterns, plot_weekday_averages,
                                     plot_individual_weekday_patterns,
                                     plot_connection_rates, plot_hourly_abandonment)

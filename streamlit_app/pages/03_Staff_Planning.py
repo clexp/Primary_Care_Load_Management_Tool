@@ -10,7 +10,7 @@ from pathlib import Path
 root_path = Path(__file__).parent.parent
 sys.path.append(str(root_path))
 
-from app.utils.data_processor import create_staffing_template
+from streamlit_app.utils.data_processor import create_staffing_template
 
 def erlang_c(traffic_intensity, agents):
     """Calculate probability of queuing using Erlang C formula"""
