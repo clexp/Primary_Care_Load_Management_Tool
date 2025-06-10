@@ -1,0 +1,46 @@
+If I can summarise, we talked about the following
+Adding in discrete event simulation
+Going back to the original data and predict just the call volume, not the waiting time, to isolate the staffing levels
+Predicting the call volume (which ML tool?) and feeding this into the discreet event simulation
+Using the output of discrete event simulation through an erlang model to state staff requirements
+Parallel and alongside this, use the staffing level data against the wait time data to develop a new parameter which we could name 'call completion pressure', this is likely to depend on the queue length and the waiting time though we may need to do a 'principal cause analysis'. (New territory for me).
+Use the 'phone call completion pressure' as a model to predict the staff requirements, this would be parallel to the erlang model, and probably use an ML tool (which?).
+Approach the Practice manager for broader data about queue drop out / hangup times. At the moment we think we only have callers that do hang up, not callers which do not hang up.
+When we get said data use the python 'prophet' library to add in seasonal variation to the hangup time data, as a third prediction model, (Feed to DES and/or other wait time prediction model).
+Keep the 'Insights' simple. 
+Not using agent based simulation yet. 
+Aim to get user buy in to the tool. 
+What would you add / remove / alter?
+Many thanks
+
+
+Sammi Rosser { HSMA Trainer }
+  3:46 PM
+Thank you Chris! Sorry for the further delay on that.
+Here's my proposed summary of next steps:
+Adding in discrete event simulation
+I'd kick off by sketching out a model of the system - where are the points patients could leave or reenter the system, for example? What resources (your call handlers) exist at different stages? You might find this chapter of the little book of DES to be a good recap. https://des.hsma.co.uk/intro_to_des_concepts.html
+I'd then build a simple first version of the model. I personally usually start by just making it so patients arrive, are seen, and then leave the system (something a bit like our simplest example here, but you'd be changing out nurses for call handlers).
+https://des.hsma.co.uk/an_example_simpy_model.html
+There's also an example of a model from the lecture (https://des.hsma.co.uk/exercise_gp.html) where it's modelling a simple GP surgery - though you wouldn't need all of the steps here as you're only interested in the capacity to answer calls, not what happens afterwards. However, that might give you an idea of how you might model other aspects of capacity - like receptionists handling people arriving in person, though parameterising that part of your model may be tricker!
+https://github.com/hsma-programme/h6_simpy_part_1/blob/main/2b_simpy_part_1/solutions/exercise_1_solution.py
+Then you can start to add in the more complex elements.
+some people calling back if they are unsuccessful the first time
+modelling the 8am rush, plus seasonality throughout the week: https://des.hsma.co.uk/modelling_variable_arrival_rates.html
+queueing behaviours like reneging (people hanging up because they've reached the maximum time they are willing/able to wait) and balking (people not joining the queue because of that 30 caller queue limit): https://des.hsma.co.uk/reneging_balking_jockeying.html
+varying the number of call handlers available at different times of day (https://des.hsma.co.uk/modelling_resource_unavailability.html)
+using real-world distributions that accurately match the call times you've seen
+Throughout this, think about the elements you want to track and summarize (like the number of people who renege/balk, the average waits for answered calls/all calls, etc.)
+---
+Using the output of discrete event simulation through an erlang model to state staff requirements
+So rather than feeding it into the Erlang model, I'd look at using the discrete event simulation model itself to predict the staffing requirements. By varying the number of resources - call handlers, while holding the number of incoming calls consistent, you can start to predict the required
+---
+Going back to the original data and predict just the call volume, not the waiting time, to isolate the staffing levels
+Predicting the call volume (which ML tool?) and feeding this into the discreet event simulation
+When working with a discrete event simulation model, you want the actual behaviour to emerge from the properties of the model, not be predetermined by the metrics you're actually trying to measure - so feeding in the call volumes is the way to go. You then track the wait times that are experiences by the entities (callers) in the model, varying the resource (call handlers) available, with call lengths being variable but based on historically observed patterns too.
+In terms of prediction, I'd recommend the Prophet library. Prophet is good for short to medium term prediction in cases where you are expecting the patterns of demand to remain broadly similar. In its simplest guise, it is only basing its predictions on the historical data fed to it - so i.e. it only has the historical number of calls available to predict the future number of calls, as opposed to factoring in loads of other things like demand on other parts of the system, weather, flu patterns, etc. - but it's likely to be 'good enough' for this approach.
+Of the time-series models out there, Prophet is user-friendly and also copes well with strongly seasonal data. It can be aware of holidays too, so should cope well with spikes/lulls due to things like bank holidays.
+However, you may not need to be predicting future call volumes via Prophet to start making use of the model - if historical demand is expected to be fairly representative still at this point, you could use that, and perhaps look to build Prophet into the process further down the line
+---
+Approach the Practice manager for broader data about queue drop out / hangup times. At the moment we think we only have callers that do hang up, not callers which do not hang up.
+Yep - it's important to be clear on exactly what is held in that dataset. You could start building your model without having this data to hand - in HSMA we generally recommend starting off with an Exponential distribution (that's what random.expovariateis in the example code), and then you can work on parameterising distributions with the real data further down the line.

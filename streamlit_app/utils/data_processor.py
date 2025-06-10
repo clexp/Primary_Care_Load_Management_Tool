@@ -199,9 +199,18 @@ def validate_dataframe(df, file_name):
     if df.empty:
         return False, "File contains no data"
     
-    # Check for non-numeric values in Total Calls column
-    if not pd.to_numeric(df['Total Calls'], errors='coerce').notna().all():
-        return False, "Total Calls column contains non-numeric values"
+    # Check for non-numeric values in Total Calls column and log a warning
+    non_numeric_mask = ~pd.to_numeric(df['Total Calls'], errors='coerce').notna()
+    if non_numeric_mask.any():
+        non_numeric_count = non_numeric_mask.sum()
+        non_numeric_examples = df.loc[non_numeric_mask, 'Total Calls'].head(3).tolist()
+        logger.warning(f"Found {non_numeric_count} non-numeric values in Total Calls column. Examples: {non_numeric_examples}")
+        
+        # Clean up non-numeric values by replacing them with NaN
+        df.loc[non_numeric_mask, 'Total Calls'] = np.nan
+        
+        # Log the number of rows affected
+        logger.info(f"Cleaned {non_numeric_count} non-numeric values in Total Calls column")
     
     return True, ""
 
@@ -258,6 +267,17 @@ def process_call_data(file):
             df['Time'] = pd.to_datetime(df['Time'])
         except Exception as e:
             raise ValueError(f"Error converting Time column to datetime: {str(e)}")
+        
+        # Handle NaN values in Total Calls column
+        if df['Total Calls'].isna().any():
+            # Log the number of NaN values
+            nan_count = df['Total Calls'].isna().sum()
+            logger.info(f"Found {nan_count} NaN values in Total Calls column")
+            
+            # Fill NaN values with 0 or with the mean of the column
+            # Using 0 as a default, but you could use df['Total Calls'].mean() or other methods
+            df['Total Calls'] = df['Total Calls'].fillna(0)
+            logger.info(f"Filled {nan_count} NaN values in Total Calls column with 0")
         
         # Calculate data quality metrics
         quality_metrics = calculate_data_quality_metrics(df)

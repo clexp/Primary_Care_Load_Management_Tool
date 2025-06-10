@@ -8,7 +8,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Add the root directory to Python path
-root_path = Path(__file__).parent.parent
+root_path = Path(__file__).parent.parent.parent
 sys.path.append(str(root_path))
 
 from streamlit_app.utils.data_processor import (
@@ -55,18 +55,16 @@ def data_management_page():
         
         for file in uploaded_files:
             try:
-                df = process_call_data(file)
+                # process_call_data returns a tuple of (DataFrame, dict)
+                df, quality_metrics = process_call_data(file)
                 processed_files.append(df)
-                
-                # Calculate metrics for this file
-                metrics = calculate_data_quality_metrics(df)
                 
                 # Add status information
                 file_status.append({
                     'file_name': file.name,
                     'status': 'Success',
-                    'records': metrics['total_records'],
-                    'date_range': f"{metrics['date_range_start'].strftime('%Y-%m-%d')} to {metrics['date_range_end'].strftime('%Y-%m-%d')}"
+                    'records': quality_metrics['total_records'],
+                    'date_range': f"{quality_metrics['date_range']['start']} to {quality_metrics['date_range']['end']}"
                 })
             except Exception as e:
                 file_status.append({
@@ -98,11 +96,19 @@ def data_management_page():
             
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("Total Records", f"{combined_metrics['total_records']:,}")
+                st.metric("Total Records", combined_metrics['total_records'])
             with col2:
-                st.metric("Date Range", f"{combined_metrics['date_range_start'].strftime('%Y-%m-%d')} to {combined_metrics['date_range_end'].strftime('%Y-%m-%d')}")
+                st.metric("Total Calls", combined_metrics['total_calls'])
             with col3:
-                st.metric("Total Calls", f"{combined_metrics['total_calls']:,}")
+                st.metric("Avg Calls per Record", f"{combined_metrics['avg_calls_per_record']:.2f}")
+            
+            # Display the combined dataframe
+            st.subheader("Combined Data Preview")
+            st.dataframe(combined_df.head(10), use_container_width=True)
+            
+            # Display data quality metrics
+            st.subheader("Data Quality Metrics")
+            st.json(combined_metrics)
             
             # Data quality checks
             st.subheader("Data Quality Checks")

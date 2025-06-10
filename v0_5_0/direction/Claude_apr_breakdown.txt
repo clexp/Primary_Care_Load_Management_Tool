@@ -1,0 +1,49 @@
+Current State:
+The project is a Streamlit-based tool for analyzing call workload in primary care
+There are three main components:
+Data analysis notebooks for initial exploration
+An Erlang-C model for call center calculations
+A Streamlit web interface for visualization and interaction
+From the documentation discussions, here are the key priorities for moving forward:
+User-Focused Development:
+Engage with end users to understand what changes would make them want to use this tool
+Focus on actionable insights that can help with staffing decisions
+Consider adding tooltips and help text for better usability
+Core Functionality Enhancements:
+Discrete Event Simulation (DES):
+Would be valuable for modeling the 8am rush and complex queue behaviors
+Could provide more intuitive visualizations for stakeholders
+Would complement the existing Erlang model for validation
+Prediction Capabilities:
+Focus on predicting call volume rather than wait times
+Consider using Prophet for time series forecasting
+Account for seasonality and special events (like holidays)
+Data Visualization Improvements:
+Add interactive Plotly charts
+Include SPC (Statistical Process Control) charts
+Create faceted views by day of week
+Add clear explanations for non-technical users
+Data Collection:
+Work on getting more complete data about queue dropouts
+Continue efforts to obtain staffing level data
+Consider collecting more granular call duration data
+Suggested Next Steps (in priority order):
+User Engagement:
+Set up meetings with potential users
+Create a simple feedback mechanism in the app
+Document key user requirements
+Core Model Development:
+Implement basic DES model starting with:
+Simple arrival and service process
+Time-dependent arrival rates
+Basic queue behavior
+Add Prophet-based call volume prediction
+Interface Improvements:
+Add help text and tooltips
+Implement interactive charts
+Create a glossary page
+Add SPC charts for trend analysis
+Documentation:
+Create user guides
+Add technical documentation
+Include example use cases

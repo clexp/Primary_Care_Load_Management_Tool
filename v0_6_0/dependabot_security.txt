@@ -1,0 +1,47 @@
+### clexp / Primary_Care_Load_Management_Tool
+
+Known security vulnerabilities detected
+
+Dependency Jinja2
+
+Version <= 3.1.5
+
+Upgrade to ~> 3.1.6
+
+Defined in requirements.txt
+
+Vulnerabilities
+
+CVE-2025-27516 Moderate severity
+
+Dependency h11
+
+Version < 0.16.0
+
+Upgrade to ~> 0.16.0
+
+Defined in requirements.txt
+
+Vulnerabilities
+
+CVE-2025-43859 Critical severity
+
+Dependency setuptools
+
+Version < 78.1.1
+
+Upgrade to ~> 78.1.1
+
+Defined in requirements.txt
+
+Vulnerabilities
+
+CVE-2025-47273 High severity
+
+Dependency tornado
+
+Version < 6.5
+
+Upgrade to ~> 6.5
+
+Defined in requirements.txt

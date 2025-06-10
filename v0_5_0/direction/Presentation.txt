@@ -1,0 +1,66 @@
+I need to do a 10 minute presentation over vid call to about 100-200 people. I have a dataset and I am analysing it, and trying to turn it into a useful streamlit package. I have to do a presentation on this. I do not necessarily need slides, I need to demo the package and analysis. This project is part of an 18 month data science training programme and gets me the APhA (Association of Professional Health Analysts) qualification. The audience will include trainee peers, prospective trainees, markers and moderators of the work, and stake holders in the real world for whom the projects are being completed. I have 2 options: 1. prepare, as in practice demoing the software and webpage 2. make a 10 minute video, which is fixed and submit it. Doing the presentation will require thinking through what I want to say, what will take 10 minutes and how I demonstrate that without revealing too much on my desktop. I will have to practice it several times, and think through how I do not display my own files on the fly. Doing the video requires having 10 minutes of dialogue (possibly less) recording it, and then harvesting many short desktop video segments, then video editing it. It will be much easier to select the screens presented and I will have a short video I can point to at a later date should I need to.EditYou're facing a classic trade-off between live presentation flexibility and polished video control. Let me break down the key considerations for each option:
+Live Presentation Advantages:
+
+More engaging and interactive with your audience
+Can adapt in real-time if something goes wrong or if you get questions
+Shows confidence and ability to think on your feet
+More authentic demonstration of your actual workflow
+Opportunity to build rapport with stakeholders and peers
+
+Video Advantages:
+
+Complete control over what's shown (no accidental file exposure)
+Can perfect your delivery through multiple takes
+Reusable for portfolio/future reference
+No technical risk during the actual presentation
+Can focus purely on the best parts of your analysis
+
+For your specific situation, I'd lean toward the video option for several reasons:
+
+Stakes are high - This is for an APhA qualification with professional stakeholders watching
+Desktop security - You mentioned concern about revealing files, which could be professionally problematic
+Audience size - 100-200 people means technical issues would be very visible
+Future value - Having a polished video for your professional portfolio is valuable
+
+Video production approach:
+
+Write a tight 8-9 minute script (allowing buffer time)
+Record narration separately for better audio quality
+Capture screen segments of your Streamlit app's key features
+Use simple transitions between analysis insights and live demo segments
+Keep it conversational, not overly scripted
+
+The video option gives you the professionalism this qualification presentation deserves while letting you showcase your work at its absolute best. What's your gut feeling about which approach feels more aligned with your strengths?RetryCLhow many words is about 10 minutes of video?I think I can do either, but I think it is easier for the video to come off well.  The journey has been challenging and there are lot of parts to it,  I want to be fully candid with the challenges, because I think the achievement is shown by overcoming the obstacles.  There is a broad range of skill levels on the course, and a range of observers.  I need to impress the seniors while providing something accessible to the less experienced.  can you describe a workflow for creating a script?EditWord count for 10 minutes: Approximately 1,300-1,500 words, assuming a natural speaking pace of 130-150 words per minute.
+I love your approach of being candid about challenges - that's exactly what demonstrates real analytical thinking and problem-solving skills. It will resonate with both experienced stakeholders (who know projects are messy) and newer trainees (who need to see that struggle is normal).
+Script Creation Workflow:
+1. Structure First (30 minutes)
+
+Opening hook (30 seconds): "This project taught me that real data science isn't just about algorithms..."
+Problem statement (1 minute): What you were trying to solve
+Journey overview (1 minute): The 3-4 major challenges you faced
+Solution demonstration (5-6 minutes): Your Streamlit app in action
+Key insights (1-2 minutes): What the analysis revealed
+Lessons learned (30 seconds): What this means for your practice
+
+2. Draft the Narrative Arc (1 hour)
+Write in bullet points first:
+
+What went wrong and why (be specific - "The data had 40% missing values in the key variable")
+How you adapted ("I had to completely redesign my approach to...")
+What the final solution achieves
+Why this matters to stakeholders
+
+3. Write Conversational Script (1-2 hours)
+
+Use "I" statements liberally
+Include natural pauses: "So... what did I learn from this?"
+Write transitions between demo segments: "Let me show you how this actually works..."
+Practice reading aloud as you write
+
+4. Layer in Technical Depth
+
+Start accessible, then add complexity
+Use the "explain then show" pattern
+Include specific metrics/results that impress seniors
+
+Would you like me to help you outline the specific structure once you tell me more about your project and main challenges?

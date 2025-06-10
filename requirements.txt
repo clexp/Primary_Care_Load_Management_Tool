@@ -111,3 +111,4 @@ streamlit
 plotly>=5.18.0
 scipy
 openpyxl  # for Excel support
+prophet>=1.1.4  # for time series forecasting
