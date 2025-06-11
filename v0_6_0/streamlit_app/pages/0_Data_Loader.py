@@ -77,6 +77,38 @@ if uploaded_file is not None:
         else:
             st.success("No null values found in the dataset")
         
+        # Create Daily Pattern Dataset
+        st.header("Creating Daily Pattern Dataset")
+        if 'Total Calls' in df.columns and 'Time' in df.columns and 'Day' in df.columns:
+            try:
+                # Extract time slots and day of week
+                df['time_slot'] = pd.to_datetime(df['Time'], format='%H:%M').dt.time
+                
+                # Calculate mean and std for each day and time slot
+                daily_pattern = df.groupby(['Day', 'time_slot']).agg({
+                    'Total Calls': ['mean', 'std', 'count']
+                }).reset_index()
+                
+                # Rename columns
+                daily_pattern.columns = ['Day', 'Time Slot', 'Average', 'Standard Deviation', 'Sample Size']
+                
+                # Sort by day and time
+                daily_pattern = daily_pattern.sort_values(['Day', 'Time Slot'])
+                
+                # Store in session state
+                st.session_state['processed_data']['daily_pattern'] = daily_pattern
+                
+                st.success("Daily pattern dataset created successfully")
+                
+                # Show preview of daily pattern
+                st.subheader("Daily Pattern Preview")
+                st.dataframe(daily_pattern)
+                
+            except Exception as e:
+                st.error(f"Error creating daily pattern: {str(e)}")
+        else:
+            st.warning("Required columns (Total Calls, Time, Day) not found in dataset")
+        
         # Cleaned Data Summary
         st.header("Cleaned Data Summary")
         clean_df = st.session_state['processed_data']['clean_df']

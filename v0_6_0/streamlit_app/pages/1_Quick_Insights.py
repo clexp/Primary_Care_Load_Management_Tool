@@ -8,17 +8,28 @@ from datetime import datetime
 st.title("Quick Insights 📈")
 st.write("Explore key patterns and trends in your call center data")
 
-# Check if data is loaded
-if not st.session_state['processed_data']['data_loaded']:
+# Check if session state exists and has required data
+if 'processed_data' not in st.session_state:
     st.warning("Please load and clean your data in the Data Loader page first.")
     st.stop()
 
-# Get the cleaned data
-df = st.session_state['processed_data']['clean_df']
+if not st.session_state['processed_data'].get('data_loaded', False):
+    st.warning("Please load and clean your data in the Data Loader page first.")
+    st.stop()
 
-if df is None:
+# Get the cleaned data and daily pattern data
+df = st.session_state['processed_data'].get('clean_df')
+daily_pattern = st.session_state['processed_data'].get('daily_pattern')
+
+if df is None or daily_pattern is None:
     st.error("No data available. Please load your data in the Data Loader page.")
     st.stop()
+
+# Debug information
+st.write("Debug - Daily Pattern Data:")
+st.write("Columns:", daily_pattern.columns.tolist())
+st.write("Unique Days:", daily_pattern['Day'].unique().tolist())
+st.write("First few rows:", daily_pattern.head())
 
 # Overview Section
 st.header("Data Overview")
@@ -43,101 +54,68 @@ if 'datetime' in df.columns and 'Total Calls' in df.columns:
     st.plotly_chart(fig, use_container_width=True)
 
 # Daily Patterns
-if 'Time' in df.columns and 'Day' in df.columns and 'Total Calls' in df.columns:
-    st.header("Daily Call Patterns")
-    
-    # Extract time slots and day of week
-    df['time_slot'] = pd.to_datetime(df['Time'], format='%H:%M').dt.time
-    df['day_of_week'] = df['Day']
-    
-    # Calculate mean and std for each day and time slot
-    daily_stats = df.groupby(['day_of_week', 'time_slot']).agg({
-        'Total Calls': ['mean', 'std', 'count']
-    }).reset_index()
-    daily_stats.columns = ['day_of_week', 'time_slot', 'mean_calls', 'std_calls', 'count']
-    
-    # Sort time slots
-    daily_stats = daily_stats.sort_values(['day_of_week', 'time_slot'])
-    
-    # Create separate plots for each day
-    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-    
-    # Create tabs for each day
-    tabs = st.tabs(days)
-    
-    for i, day in enumerate(days):
-        with tabs[i]:
-            day_data = daily_stats[daily_stats['day_of_week'] == day]
+st.header("Daily Call Patterns")
+
+# Create tabs for each day using three-letter abbreviations
+days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+tabs = st.tabs(day_names)
+
+for i, (day, day_name) in enumerate(zip(days, day_names)):
+    with tabs[i]:
+        st.write(f"### {day_name} Call Volume Pattern")
+        
+        # Get data for this day from the daily pattern
+        day_data = daily_pattern[daily_pattern['Day'] == day].copy()
+        
+        if not day_data.empty:
+            # Create the plot
+            fig = go.Figure()
             
-            if not day_data.empty:
-                # Create the figure
-                fig = go.Figure()
-                
-                # Add mean line with markers
-                fig.add_trace(go.Scatter(
-                    x=day_data['time_slot'],
-                    y=day_data['mean_calls'],
-                    mode='lines+markers',
-                    name='Mean Calls',
-                    line=dict(color='blue', width=2),
-                    marker=dict(size=8, color='blue')
-                ))
-                
-                # Add standard deviation area
-                fig.add_trace(go.Scatter(
-                    x=day_data['time_slot'],
-                    y=day_data['mean_calls'] + day_data['std_calls'],
-                    mode='lines',
-                    line=dict(width=0),
-                    showlegend=False
-                ))
-                
-                fig.add_trace(go.Scatter(
-                    x=day_data['time_slot'],
-                    y=day_data['mean_calls'] - day_data['std_calls'],
-                    mode='lines',
-                    line=dict(width=0),
-                    fill='tonexty',
-                    fillcolor='rgba(0,100,255,0.2)',
-                    name='Standard Deviation'
-                ))
-                
-                # Update layout
-                fig.update_layout(
-                    title=f'Call Volume Pattern - {day}',
-                    xaxis_title='Time Slot',
-                    yaxis_title='Number of Calls',
-                    hovermode='x unified',
-                    showlegend=True,
-                    height=400
-                )
-                
-                # Add hover template
-                fig.update_traces(
-                    hovertemplate="Time: %{x}<br>Mean Calls: %{y:.1f}<br>Std Dev: ±%{customdata:.1f}<br>Sample Size: %{customdata2}<extra></extra>",
-                    customdata=day_data['std_calls'],
-                    customdata2=day_data['count']
-                )
-                
-                # Show the plot
-                st.plotly_chart(fig, use_container_width=True)
-                
-                # Show statistics
-                st.write("### Statistics")
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("Average Calls", f"{day_data['mean_calls'].mean():.1f}")
-                with col2:
-                    st.metric("Max Calls", f"{day_data['mean_calls'].max():.1f}")
-                with col3:
-                    st.metric("Min Calls", f"{day_data['mean_calls'].min():.1f}")
-                
-                # Show data table
-                st.write("### Detailed Data")
-                display_data = day_data.copy()
-                display_data['time_slot'] = display_data['time_slot'].astype(str)
-                display_data.columns = ['Day', 'Time Slot', 'Mean Calls', 'Std Dev', 'Sample Size']
-                st.dataframe(display_data)
+            # Add mean line with markers
+            fig.add_trace(go.Scatter(
+                x=day_data['Time Slot'],
+                y=day_data['Average'],
+                mode='lines+markers',
+                name='Average Calls',
+                line=dict(color='blue', width=2),
+                marker=dict(size=8, color='blue')
+            ))
+            
+            # Update layout
+            fig.update_layout(
+                title=f'Call Volume Pattern - {day_name}',
+                xaxis_title='Time Slot',
+                yaxis_title='Number of Calls',
+                hovermode='x unified',
+                showlegend=True,
+                height=400
+            )
+            
+            # Add hover template
+            fig.update_traces(
+                hovertemplate="Time: %{x}<br>Average Calls: %{y:.1f}<extra></extra>"
+            )
+            
+            # Show the plot
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Show statistics
+            st.write("### Statistics")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Average Calls", f"{day_data['Average'].mean():.1f}")
+            with col2:
+                st.metric("Max Calls", f"{day_data['Average'].max():.1f}")
+            with col3:
+                st.metric("Min Calls", f"{day_data['Average'].min():.1f}")
+            
+            # Show data table
+            st.write("### Detailed Data")
+            display_data = day_data.copy()
+            st.dataframe(display_data)
+        else:
+            st.write(f"No data available for {day_name}")
 
 # Statistical Summary
 st.header("Statistical Summary")
