@@ -72,14 +72,22 @@ for i, (day, day_name) in enumerate(zip(days, day_names)):
             # Create the plot
             fig = go.Figure()
             
-            # Add mean line with markers
+            # Add mean line with markers and error bars
             fig.add_trace(go.Scatter(
                 x=day_data['Time Slot'],
                 y=day_data['Average'],
                 mode='lines+markers',
                 name='Average Calls',
                 line=dict(color='blue', width=2),
-                marker=dict(size=8, color='blue')
+                marker=dict(size=8, color='blue'),
+                error_y=dict(
+                    type='data',
+                    array=day_data['Standard Deviation'],
+                    visible=True,
+                    color='rgba(0,100,255,0.3)',
+                    thickness=1.5,
+                    width=4
+                )
             ))
             
             # Update layout
@@ -94,7 +102,8 @@ for i, (day, day_name) in enumerate(zip(days, day_names)):
             
             # Add hover template
             fig.update_traces(
-                hovertemplate="Time: %{x}<br>Average Calls: %{y:.1f}<extra></extra>"
+                hovertemplate="Time: %{x}<br>Average Calls: %{y:.1f} ± %{customdata:.1f}<extra></extra>",
+                customdata=day_data['Standard Deviation']
             )
             
             # Show the plot
