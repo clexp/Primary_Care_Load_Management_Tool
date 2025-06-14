@@ -1,4 +1,19 @@
 import streamlit as st
+st.set_page_config(
+    page_title="Call Center Analytics",
+    page_icon="📊",
+    layout="wide"
+)
+
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+import simpy
+from datetime import datetime, time
+import random
+from prophet import Prophet
+from prophet.make_holidays import make_holidays_df
 
 # Initialize session state if it doesn't exist
 if 'processed_data' not in st.session_state:
@@ -7,15 +22,14 @@ if 'processed_data' not in st.session_state:
         'clean_df': None,
         'daily_pattern': None,
         'data_loaded': False,
-        'daily_stats': None
+        'daily_stats': None,
+        'call_volume_model': None,
+        'wait_time_model': None,
+        'call_duration_model': None,
+        'call_volume_forecast': None,
+        'wait_time_forecast': None,
+        'call_duration_forecast': None
     }
-
-# Page configuration
-st.set_page_config(
-    page_title="Call Center Analytics",
-    page_icon="📊",
-    layout="wide"
-)
 
 # Title and description
 st.title("Call Center Analytics")

@@ -109,6 +109,128 @@ if uploaded_file is not None:
         else:
             st.warning("Required columns (Total Calls, Time, Day) not found in dataset")
         
+        # Create Call Time Pattern Dataset
+        st.header("Creating Call Time Pattern Dataset")
+        if 'Avg Call Length (s)' in df.columns and 'Time' in df.columns and 'Day' in df.columns:
+            try:
+                # Extract time slots and day of week
+                df['time_slot'] = pd.to_datetime(df['Time'], format='%H:%M').dt.time
+                
+                # Calculate mean and std for each day and time slot
+                call_time_pattern = df.groupby(['Day', 'time_slot']).agg({
+                    'Avg Call Length (s)': ['mean', 'std', 'count']
+                }).reset_index()
+                
+                # Rename columns
+                call_time_pattern.columns = ['Day', 'Time Slot', 'Average Call Time (s)', 'Standard Deviation (s)', 'Sample Size']
+                
+                # Sort by day and time
+                call_time_pattern = call_time_pattern.sort_values(['Day', 'Time Slot'])
+                
+                # Store in session state
+                st.session_state['processed_data']['call_time_pattern'] = call_time_pattern
+                
+                st.success("Call time pattern dataset created successfully")
+                
+                # Show preview of call time pattern
+                st.subheader("Call Time Pattern Preview")
+                st.dataframe(call_time_pattern)
+                
+                # Create visualization
+                st.subheader("Call Time Pattern Visualization")
+                fig = px.line(call_time_pattern, 
+                            x='Time Slot', 
+                            y='Average Call Time (s)',
+                            color='Day',
+                            error_y='Standard Deviation (s)',
+                            title='Average Call Time by Time Slot and Day')
+                st.plotly_chart(fig)
+                
+            except Exception as e:
+                st.error(f"Error creating call time pattern: {str(e)}")
+        else:
+            st.warning("Required columns (Avg Call Length (s), Time, Day) not found in dataset")
+        
+        # Create Wait Time Pattern Dataset
+        st.header("Creating Wait Time Pattern Dataset")
+        if 'Avg Wait Time (s)' in df.columns and 'Time' in df.columns and 'Day' in df.columns:
+            try:
+                # Extract time slots and day of week
+                df['time_slot'] = pd.to_datetime(df['Time'], format='%H:%M').dt.time
+                
+                # Calculate mean and std for each day and time slot
+                wait_time_pattern = df.groupby(['Day', 'time_slot']).agg({
+                    'Avg Wait Time (s)': ['mean', 'std', 'count']
+                }).reset_index()
+                
+                # Rename columns
+                wait_time_pattern.columns = ['Day', 'Time Slot', 'Average Wait Time (s)', 'Standard Deviation (s)', 'Sample Size']
+                
+                # Sort by day and time
+                wait_time_pattern = wait_time_pattern.sort_values(['Day', 'Time Slot'])
+                
+                # Store in session state
+                st.session_state['processed_data']['wait_time_pattern'] = wait_time_pattern
+                
+                st.success("Wait time pattern dataset created successfully")
+                
+                # Show preview of wait time pattern
+                st.subheader("Wait Time Pattern Preview")
+                st.dataframe(wait_time_pattern)
+                
+                # Create visualization
+                st.subheader("Wait Time Pattern Visualization")
+                fig = px.line(wait_time_pattern, 
+                            x='Time Slot', 
+                            y='Average Wait Time (s)',
+                            color='Day',
+                            error_y='Standard Deviation (s)',
+                            title='Average Wait Time by Time Slot and Day')
+                st.plotly_chart(fig)
+                
+                # Add a combined visualization of call time and wait time
+                st.subheader("Combined Call and Wait Time Analysis")
+                combined_data = pd.merge(
+                    call_time_pattern,
+                    wait_time_pattern,
+                    on=['Day', 'Time Slot'],
+                    suffixes=('_call', '_wait')
+                )
+                
+                fig_combined = go.Figure()
+                
+                # Add call time traces
+                for day in combined_data['Day'].unique():
+                    day_data = combined_data[combined_data['Day'] == day]
+                    fig_combined.add_trace(go.Scatter(
+                        x=day_data['Time Slot'],
+                        y=day_data['Average Call Time (s)'],
+                        name=f'{day} - Call Time',
+                        line=dict(dash='solid')
+                    ))
+                    
+                    # Add wait time traces
+                    fig_combined.add_trace(go.Scatter(
+                        x=day_data['Time Slot'],
+                        y=day_data['Average Wait Time (s)'],
+                        name=f'{day} - Wait Time',
+                        line=dict(dash='dot')
+                    ))
+                
+                fig_combined.update_layout(
+                    title='Call Time vs Wait Time by Time Slot and Day',
+                    xaxis_title='Time Slot',
+                    yaxis_title='Time (seconds)',
+                    hovermode='x unified'
+                )
+                
+                st.plotly_chart(fig_combined)
+                
+            except Exception as e:
+                st.error(f"Error creating wait time pattern: {str(e)}")
+        else:
+            st.warning("Required columns (Avg Wait Time (s), Time, Day) not found in dataset")
+        
         # Cleaned Data Summary
         st.header("Cleaned Data Summary")
         clean_df = st.session_state['processed_data']['clean_df']

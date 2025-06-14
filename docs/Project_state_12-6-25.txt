@@ -1,0 +1,22 @@
+Project State for the last leg. 14-6-25 to 24-6-25
+
+We have 10 days to complete the project and produce a video demonstrating it.
+
+The remaining work requires building a discrete event simulation flow in a Streamlit page and a staff planning calculator using the erlang methods, in another page on the app. The video requires telling the story of how we built it and the design decisions, with the final demonstration of the whole workflow and it should last for 7 to 10 minutes.
+
+The telling the story of how we built it and the design decisions, with the final demonstration of the whole workflow and it should last for 7 to 10 minutes. I understand this is about 1200 to 1500 words.  I can do a list of events in order as a basis for building this monologue.
+
+The discreet event simulation needs to use simpy and have some visual representation of the event simulation flow on the screen. It needs to take data from the prediction method (2_call_volume_forecasting) and use this as a basis for modelling wait time with varying staff level.  The output from the Discrete event simulation should tell us the staff needed. The Erlang calculator works in parallel to the discrete event simulation, both can be output to a final comparison page.  
+
+days/hours free:
+14-6-26 - 1 day
+15 - 1/2 day
+16 - 1 hour
+17 - 1 hour
+18 - 1 day
+19 - 3 hours
+20 - 5 hours
+21 - 1 day
+22 - 1/2 day
+23 - 1 hour
+24 - 0 hours, 0 days, presentation day!!

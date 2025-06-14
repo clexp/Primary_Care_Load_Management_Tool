@@ -1,0 +1,39 @@
+Discrete Event simulations
+
+This model system runs in 'steps' which we should count as a minute for now.  The working day is 8 o'clock in the morning to 630 in the evening
+
+Entities: 
+- mainly phone callers.  
+
+Generators: 
+- this will be the call volume model, from the 2_call_volume_forecasting page. The call volume will be taken from the model prediction for each minute in the cycle. This feeds the inter-arrival times.  
+
+Inter arrival time
+- Simpy uses an exponential (poisson or log normal) method for getting the arrival rate.  This will do for now but it allow a (remote) chance for there to be 20 minute wait between calls for a 30 minute session with a call volume average of 150.  this is unrealistic.  Using the average and standard deviation for the 1/2 hour period it much more likely.  I am not sure how simpy would do that.  
+
+Activities:
+- in this case it would be the event between the start and end of the call, and named 'call time' or semantically better described as call duration. Simpy calls this the activity time.  The call start is one of the markers of end of wait queue.  Another would be drop out, which is also called reneiging (i think), which is similar too but not the same as balking.  
+
+Queues:
+- there is only one queue, the call queue. 
+
+Resources: 
+- these are call handlers, the default should be 5 until 12:30 and 3 thereafter, same each weekday
+
+Model:
+- this is pretty simple, there is one queue, and a (variably sized) team of call handlers/Resources
+
+Priority:
+- there is no priority in this model.  
+
+Sinks:
+- when the call is over, the caller goes to the sink and is out of the system.
+
+Branching Paths:
+- There are no branching paths.  
+
+Outputs:
+- chiefly I am interested in call wait time.  How long is someone waiting to get through.  This should be logged for each 1/2 hour, as an average for that 1/2 hour.  Note the cheif changes are the call volume change and the staffing change.  
+
+
+

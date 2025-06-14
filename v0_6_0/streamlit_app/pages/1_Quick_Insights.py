@@ -25,12 +25,6 @@ if df is None or daily_pattern is None:
     st.error("No data available. Please load your data in the Data Loader page.")
     st.stop()
 
-# Debug information
-st.write("Debug - Daily Pattern Data:")
-st.write("Columns:", daily_pattern.columns.tolist())
-st.write("Unique Days:", daily_pattern['Day'].unique().tolist())
-st.write("First few rows:", daily_pattern.head())
-
 # Overview Section
 st.header("Data Overview")
 col1, col2, col3 = st.columns(3)
@@ -125,6 +119,160 @@ for i, (day, day_name) in enumerate(zip(days, day_names)):
             st.dataframe(display_data)
         else:
             st.write(f"No data available for {day_name}")
+
+# Call Time Analysis
+st.header("Daily Call Time Patterns")
+
+# Get call time pattern data from session state
+call_time_pattern = st.session_state['processed_data'].get('call_time_pattern')
+
+if call_time_pattern is not None:
+    # Create tabs for each day
+    call_time_tabs = st.tabs(day_names)
+
+    for i, (day, day_name) in enumerate(zip(days, day_names)):
+        with call_time_tabs[i]:
+            st.write(f"### {day_name} Call Duration Pattern")
+            
+            # Get data for this day
+            day_data = call_time_pattern[call_time_pattern['Day'] == day].copy()
+            
+            if not day_data.empty:
+                # Create the plot
+                fig = go.Figure()
+                
+                # Add mean line with markers and error bars
+                fig.add_trace(go.Scatter(
+                    x=day_data['Time Slot'],
+                    y=day_data['Average Call Time (s)'],
+                    mode='lines+markers',
+                    name='Average Call Duration',
+                    line=dict(color='green', width=2),
+                    marker=dict(size=8, color='green'),
+                    error_y=dict(
+                        type='data',
+                        array=day_data['Standard Deviation (s)'],
+                        visible=True,
+                        color='rgba(0,255,0,0.3)',
+                        thickness=1.5,
+                        width=4
+                    )
+                ))
+                
+                # Update layout
+                fig.update_layout(
+                    title=f'Call Duration Pattern - {day_name}',
+                    xaxis_title='Time Slot',
+                    yaxis_title='Call Duration (seconds)',
+                    hovermode='x unified',
+                    showlegend=True,
+                    height=400
+                )
+                
+                # Add hover template
+                fig.update_traces(
+                    hovertemplate="Time: %{x}<br>Average Duration: %{y:.1f}s ± %{customdata:.1f}s<extra></extra>",
+                    customdata=day_data['Standard Deviation (s)']
+                )
+                
+                # Show the plot
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Show statistics
+                st.write("### Statistics")
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Average Duration", f"{day_data['Average Call Time (s)'].mean():.1f}s")
+                with col2:
+                    st.metric("Max Duration", f"{day_data['Average Call Time (s)'].max():.1f}s")
+                with col3:
+                    st.metric("Min Duration", f"{day_data['Average Call Time (s)'].min():.1f}s")
+                
+                # Show data table
+                st.write("### Detailed Data")
+                display_data = day_data.copy()
+                st.dataframe(display_data)
+            else:
+                st.write(f"No call time data available for {day_name}")
+else:
+    st.warning("Call time pattern data not available. Please process your data in the Data Loader page first.")
+
+# Wait Time Analysis
+st.header("Daily Wait Time Patterns")
+
+# Get wait time pattern data from session state
+wait_time_pattern = st.session_state['processed_data'].get('wait_time_pattern')
+
+if wait_time_pattern is not None:
+    # Create tabs for each day
+    wait_time_tabs = st.tabs(day_names)
+
+    for i, (day, day_name) in enumerate(zip(days, day_names)):
+        with wait_time_tabs[i]:
+            st.write(f"### {day_name} Wait Time Pattern")
+            
+            # Get data for this day
+            day_data = wait_time_pattern[wait_time_pattern['Day'] == day].copy()
+            
+            if not day_data.empty:
+                # Create the plot
+                fig = go.Figure()
+                
+                # Add mean line with markers and error bars
+                fig.add_trace(go.Scatter(
+                    x=day_data['Time Slot'],
+                    y=day_data['Average Wait Time (s)'],
+                    mode='lines+markers',
+                    name='Average Wait Time',
+                    line=dict(color='red', width=2),
+                    marker=dict(size=8, color='red'),
+                    error_y=dict(
+                        type='data',
+                        array=day_data['Standard Deviation (s)'],
+                        visible=True,
+                        color='rgba(255,0,0,0.3)',
+                        thickness=1.5,
+                        width=4
+                    )
+                ))
+                
+                # Update layout
+                fig.update_layout(
+                    title=f'Wait Time Pattern - {day_name}',
+                    xaxis_title='Time Slot',
+                    yaxis_title='Wait Time (seconds)',
+                    hovermode='x unified',
+                    showlegend=True,
+                    height=400
+                )
+                
+                # Add hover template
+                fig.update_traces(
+                    hovertemplate="Time: %{x}<br>Average Wait: %{y:.1f}s ± %{customdata:.1f}s<extra></extra>",
+                    customdata=day_data['Standard Deviation (s)']
+                )
+                
+                # Show the plot
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Show statistics
+                st.write("### Statistics")
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Average Wait", f"{day_data['Average Wait Time (s)'].mean():.1f}s")
+                with col2:
+                    st.metric("Max Wait", f"{day_data['Average Wait Time (s)'].max():.1f}s")
+                with col3:
+                    st.metric("Min Wait", f"{day_data['Average Wait Time (s)'].min():.1f}s")
+                
+                # Show data table
+                st.write("### Detailed Data")
+                display_data = day_data.copy()
+                st.dataframe(display_data)
+            else:
+                st.write(f"No wait time data available for {day_name}")
+else:
+    st.warning("Wait time pattern data not available. Please process your data in the Data Loader page first.")
 
 # Statistical Summary
 st.header("Statistical Summary")
