@@ -5,6 +5,22 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 
+# Initialize session state if it doesn't exist
+if 'processed_data' not in st.session_state:
+    st.session_state['processed_data'] = {
+        'raw_df': None,
+        'clean_df': None,
+        'daily_pattern': None,
+        'data_loaded': False,
+        'daily_stats': None,
+        'call_volume_model': None,
+        'wait_time_model': None,
+        'call_duration_model': None,
+        'call_volume_forecast': None,
+        'wait_time_forecast': None,
+        'call_duration_forecast': None
+    }
+
 st.title("Data Loader 📂")
 st.write("Upload and clean your call center data")
 
