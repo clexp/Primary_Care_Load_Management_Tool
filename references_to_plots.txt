@@ -1,0 +1,12 @@
+Hi!
+So statistical process control charts are exactly what you say - they've become quite popular in board reports etc. as a more robust alternative to just monitoring whether metrics have gone up/down from the previous month. They're not perfect for all situations but because they highlight unusual patterns they can be a good way of spotting things in time series that are out of the ordinary. Process limits in the NHS recommended approach to SPC charts are 3 sigma (sort of along the same lines as standard deviation, but takes the chronological order of points into account).
+The other nice thing the NHS have added in are a series of icons to quickly summarise whether something is reliably hitting targets (if that metric has a target) and
+There's some initial training on them here and some further training here.
+There is a very established R package for generating them (https://github.com/nhs-r-community/NHSRplotthedots) but the Python package is unfortunately a little less developed and seems to have stalled somewhat (https://github.com/nhs-pycom/nhspy-plotthedots).
+Ref faceting, I'd usually be thinking of something like this:
+https://plotly.com/python/facet-plots/
+So multiple rows and/or columns to split a plot down by some factor. Can help a lot with plots with lots of lines on that get too hard to interpret, or with other types of graph where you want to be able to see trends across groups. Plotly, seaborn and matplotlib should all provide helpers for doing that.
+Though I like the heatmap idea too in this case!
+plotly.complotly.com
+Facet
+Over 13 examples of Facet and Trellis Plots including changing color, size, log axes, and more in Python.

@@ -1,0 +1,17 @@
+data/2024-25 PMP Telephony Dashboard(Wait Time Before Abandoned).csv
+- is a sample dataset
+
+analysis/process-call-data.ipynb
+- is the opening analysis of the data
+
+trial_streamlit.py
+- is a very basic streamlit app
+
+run_app.py
+- is a non functioning streamlit app
+
+streamlit_app.py
+-  is a non functioning streamlit app
+
+analysis/data_exploration.ipynb
+- is the first prophet forecasting 

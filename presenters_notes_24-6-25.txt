@@ -1,0 +1,39 @@
+ hello, my name is Chris Lewis and I am a GP and former engineer working in the Midlands.
+
+
+I was really pleased to be on the HSMA course I thought it was a great privilege and I've tried to make the most of it. my Practice was not able to free me for the Tuesday sessions, so I played catch-up since I get some free time elsewhere in the week. This is made it a little bit harder to learn but I think I was starting with a little bit of experience with Python.
+
+
+
+This project is about modelling patient flow through the telephone system in a GP practice. For that reason it's very similar to a project seen previously today. At the commencement of my project I noted this and thought I'd keep an eye on that project with a view collaboration.
+
+
+
+I was in the fortunate position of working in a moderately large GP practice with a reasonable number of patients at time of commencing the project that was around 35,000. We have a telephone system which can log and monitor call data. This makes it easy to provide a range of call statistics.
+
+The opening part of the project was to convince key players within the organisation that I could access the call data. While this was not particularly difficult, it took some time once I had access to the call data. This potentially changed what I wanted to do with it.
+
+
+
+At the start of the project the problem we were asking is how do we reduce average call waiting times. That had been changed in the planning and the question was whether this would improve things. On the phase of it the software managing the phone system can provide this but I wanted to look a little bit further.  The question we're trying to ask is how many staff do you need to keep the wait time average down.
+
+Hey you can see the front end of the phone call management system yeah you can see. I can export it and visualise it as excel here I can export it to, separated values which I can import on my own system.
+
+I wasn't using any patient data and I was not using any data that was particularly sensitive to business operations. This meant I could work on it at home which I would rather have done. I did not want the headache cough arguing with local IT services about installing programming software on work computers. Added to which there was no guarantee that I would have free desk space at work. It was safe to work at home, from a data point of view.
+
+So now we have data, let's have a look at it.  
+Process-call-data.pynb
+
+ now we've seen our data we need to have a think about where we're going with it. The problem with the wait time data is that the wait time data is dependent on both the cool value and also the staffing level.
+ 
+ Let's see if we can get this into a stream lit app. Here is a basic extremely lit app. It's fun. He's another one that didn't work and he's another one that didn't work but eventually we got one that did work and we even put it on the cloud on the stream community pages. 
+ 
+ The staffing level was actually much more difficult to get hold of the manager changed over partly through and the initial data for staffing level somehow no longer available. This somewhat means we are not able to answer the question about what the ideal staff level is so the project needs a pivot.
+
+We have telephone call volume and we can use this as a data set to predict future volumes. We can also use this as an input to a discrete event simulation model.
+
+
+
+Lets have a look at building a streamlit model, here is a very simple one. Well, that was fun.
+
+ have we got one that works? No, I wonder if git can help us here.

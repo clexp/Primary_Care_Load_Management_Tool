@@ -129,7 +129,7 @@ def secretarial_work(env, handler_pool, handler):
         raise
 
 def call_process(env, handler_pool, time_slot, day):
-    """Process a single call"""
+        """Process a single call"""
     try:
         print(f'{env.now:.2f}: Starting call process for time slot {time_slot}')
         
@@ -147,20 +147,20 @@ def call_process(env, handler_pool, time_slot, day):
         
         # Calculate actual wait time
         wait_time = env.now - wait_start
-        
-        # Get call duration from pattern
+            
+            # Get call duration from pattern
         call_duration = call_time_pattern.loc[
             (call_time_pattern['Day'] == day) & 
             (call_time_pattern['Time Slot'] == time_slot), 
-            'Average Call Time (s)'
-        ].values[0]
+                'Average Call Time (s)'
+            ].values[0]
         
         # Scale down call duration for testing
         call_duration = min(call_duration, 60)  # Cap at 60 seconds for testing
         
         print(f'{env.now:.2f}: Processing call with duration {call_duration:.2f}')
-        
-        # Simulate call duration
+            
+            # Simulate call duration
         yield env.timeout(call_duration)
         
         # Return handler to pool
@@ -202,10 +202,10 @@ def run_simulation(handler_pool, daily_pattern, call_time_pattern, simulation_da
             sorted_pattern = daily_pattern.sort_values('Time Slot')
             
             for _, row in sorted_pattern.iterrows():
-                time_slot = row['Time Slot']
+                    time_slot = row['Time Slot']
                 sim_time = time_to_sim_time(time_slot)
-                num_calls = int(row['Average'])
-                
+                    num_calls = int(row['Average'])
+                    
                 print(f'Current sim time: {handler_pool.env.now:.2f}, Processing time slot {time_slot} (sim time: {sim_time:.2f}) with {num_calls} calls')
                 
                 # Wait until we reach this time slot
@@ -326,7 +326,7 @@ if st.button("Run Simulation"):
             st.write("Debug: First few rows of call data:", results_df.head())
             st.write("Debug: Queue Length DataFrame columns:", queue_df.columns.tolist())
             st.write("Debug: First few rows of queue data:", queue_df.head())
-            
+                
             # Calculate statistics by time slot
             call_stats = results_df.groupby('time_slot').agg({
                 'wait_time': ['mean', 'std', 'count'],

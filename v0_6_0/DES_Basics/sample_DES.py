@@ -7,8 +7,10 @@ import pandas as pd
 class g:
     time_units_between_customer_arrivals = 5
     mean_customer_service_time = 6
-    number_of_customer_support_agents = 1
+    number_of_nurses = 1
     sim_duration = 1440
+    patient_inter = 5
+    mean_n_consult_time = 6
     number_of_runs = 10
 
 class Patient:
