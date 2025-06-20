@@ -37,3 +37,6 @@ We have telephone call volume and we can use this as a data set to predict futur
 Lets have a look at building a streamlit model, here is a very simple one. Well, that was fun.
 
  have we got one that works? No, I wonder if git can help us here.
+
+
+ 9 minutes 30 seconds = approximately 1,235-1,425 words
