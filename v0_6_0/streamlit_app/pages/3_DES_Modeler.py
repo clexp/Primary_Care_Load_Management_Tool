@@ -57,7 +57,6 @@ class CallHandlerPool:
         
         # Initialize the store with handlers
         self.handlers.items = [CallHandler() for _ in range(start_handlers)]
-        print(f'Initialized pool with {start_handlers} handlers')
 
     def add_handler(self):
         """Add a handler to the pool"""
@@ -67,7 +66,6 @@ class CallHandlerPool:
             self.handlers.put(handler)
             self.curr_cnt += 1
             self.debug_stats['handlers_added'] += 1
-            print(f'{self.env.now:.2f}: Handler {handler.id} added. Current count: {self.curr_cnt}/{self.target_cnt}')
 
     def remove_handler(self):
         """Remove a handler from the pool"""
@@ -78,20 +76,14 @@ class CallHandlerPool:
                 handler = yield self.handlers.get()
                 self.curr_cnt -= 1
                 self.debug_stats['handlers_removed'] += 1
-                print(f'{self.env.now:.2f}: Idle handler {handler.id} removed. Current count: {self.curr_cnt}/{self.target_cnt}')
-            else:
-                # No idle handlers, mark the next returning handler for removal
-                print(f'{self.env.now:.2f}: No idle handlers available. Next returning handler will be removed.')
 
     def transition_to_secretarial(self, handler):
         """Transition a handler to secretarial work"""
         handler.is_secretarial = True
         self.debug_stats['secretarial_transitions'] += 1
-        print(f'{self.env.now:.2f}: Handler {handler.id} transitioned to secretarial work')
 
     def get_handler(self):
         """Get a handler from the pool - this is the generator function"""
-        print(f'{self.env.now:.2f}: Requesting handler. Available: {len(self.handlers.items)}, Queue: {len(self.handlers.get_queue)}')
         handler = yield self.handlers.get()
         handler.current_call = self.env.now
         return handler
@@ -101,11 +93,9 @@ class CallHandlerPool:
         handler.current_call = None
         if self.curr_cnt <= self.target_cnt:
             self.handlers.put(handler)
-            print(f'{self.env.now:.2f}: Handler {handler.id} returned to pool. Available: {len(self.handlers.items)}')
         else:
             self.curr_cnt -= 1
             self.debug_stats['handlers_removed'] += 1
-            print(f'{self.env.now:.2f}: Handler {handler.id} removed on return to pool. Current count: {self.curr_cnt}/{self.target_cnt}')
 
     def record_queue_length(self, time_slot):
         """Record current queue length"""
@@ -119,48 +109,40 @@ class CallHandlerPool:
 def secretarial_work(env, handler_pool, handler):
     """Process for secretarial work"""
     try:
-        print(f'{env.now:.2f}: Handler {handler.id} starting secretarial work')
         # Simulate secretarial work duration
         yield env.timeout(3600)  # 1 hour of secretarial work
-        print(f'{env.now:.2f}: Handler {handler.id} completed secretarial work')
         handler.is_secretarial = False
     except Exception as e:
         print(f"Error in secretarial work: {str(e)}")
         raise
 
 def call_process(env, handler_pool, time_slot, day):
-        """Process a single call"""
+    """Process a single call"""
     try:
-        print(f'{env.now:.2f}: Starting call process for time slot {time_slot}')
-        
         # Record queue length at arrival
         queue_length = len(handler_pool.handlers.get_queue)
         handler_pool.record_queue_length(time_slot)
-        print(f'{env.now:.2f}: Queue length at arrival: {queue_length}')
         
         # Record wait start time
         wait_start = env.now
         
         # Get a handler from the pool
         handler = yield from handler_pool.get_handler()
-        print(f'{env.now:.2f}: Got handler {handler.id}')
         
         # Calculate actual wait time
         wait_time = env.now - wait_start
-            
-            # Get call duration from pattern
+        
+        # Get call duration from pattern
         call_duration = call_time_pattern.loc[
             (call_time_pattern['Day'] == day) & 
             (call_time_pattern['Time Slot'] == time_slot), 
-                'Average Call Time (s)'
-            ].values[0]
+            'Average Call Time (s)'
+        ].values[0]
         
         # Scale down call duration for testing
         call_duration = min(call_duration, 60)  # Cap at 60 seconds for testing
         
-        print(f'{env.now:.2f}: Processing call with duration {call_duration:.2f}')
-            
-            # Simulate call duration
+        # Simulate call duration
         yield env.timeout(call_duration)
         
         # Return handler to pool
@@ -175,8 +157,6 @@ def call_process(env, handler_pool, time_slot, day):
         })
         handler_pool.debug_stats['calls_processed'] += 1
         
-        print(f'{env.now:.2f}: Call completed. Total calls processed: {handler_pool.debug_stats["calls_processed"]}')
-        
     except Exception as e:
         st.error(f"Error in call process: {str(e)}")
         print(f"Error in call process: {str(e)}")
@@ -185,8 +165,6 @@ def call_process(env, handler_pool, time_slot, day):
 def run_simulation(handler_pool, daily_pattern, call_time_pattern, simulation_days):
     """Run the simulation for specified number of days"""
     try:
-        print(f'Starting simulation for {simulation_days} days')
-        
         # Convert time slots to simulation time
         def time_to_sim_time(t):
             if isinstance(t, str):
@@ -196,33 +174,26 @@ def run_simulation(handler_pool, daily_pattern, call_time_pattern, simulation_da
             return (h - 8) * 3600 + m * 60  # Start at 8:00 = 0
         
         for day in range(simulation_days):
-            print(f'Starting day {day + 1}')
-            
             # Sort time slots by time
             sorted_pattern = daily_pattern.sort_values('Time Slot')
             
             for _, row in sorted_pattern.iterrows():
-                    time_slot = row['Time Slot']
+                time_slot = row['Time Slot']
                 sim_time = time_to_sim_time(time_slot)
-                    num_calls = int(row['Average'])
-                    
-                print(f'Current sim time: {handler_pool.env.now:.2f}, Processing time slot {time_slot} (sim time: {sim_time:.2f}) with {num_calls} calls')
+                num_calls = int(row['Average'])
                 
                 # Wait until we reach this time slot
                 if handler_pool.env.now < sim_time:
                     wait_time = sim_time - handler_pool.env.now
-                    print(f'Waiting {wait_time:.2f} seconds to reach time slot {time_slot}')
                     yield handler_pool.env.timeout(wait_time)
                 
                 # Update staffing based on time
                 if time_slot < time(12, 30):
-                    print(f'{handler_pool.env.now:.2f}: Morning shift - target staff: {morning_staff}')
                     while handler_pool.curr_cnt < morning_staff:
                         handler_pool.add_handler()
                     while handler_pool.curr_cnt > morning_staff:
                         handler_pool.env.process(handler_pool.remove_handler())
                 else:
-                    print(f'{handler_pool.env.now:.2f}: Afternoon shift - target staff: {afternoon_staff}')
                     # For afternoon shift, transition excess handlers to secretarial work
                     excess_handlers = handler_pool.curr_cnt - afternoon_staff
                     if excess_handlers > 0:
@@ -237,7 +208,6 @@ def run_simulation(handler_pool, daily_pattern, call_time_pattern, simulation_da
                 
                 # Create calls for this time slot
                 for i in range(num_calls):
-                    print(f'{handler_pool.env.now:.2f}: Creating call {i+1}/{num_calls}')
                     handler_pool.env.process(call_process(handler_pool.env, handler_pool, time_slot, row['Day']))
                     # Add small delay between calls
                     yield handler_pool.env.timeout(1)
@@ -246,16 +216,8 @@ def run_simulation(handler_pool, daily_pattern, call_time_pattern, simulation_da
             end_of_day = time_to_sim_time(time(18, 30))
             if handler_pool.env.now < end_of_day:
                 wait_time = end_of_day - handler_pool.env.now
-                print(f'Waiting {wait_time:.2f} seconds to reach end of day')
                 yield handler_pool.env.timeout(wait_time)
                 
-        print('Simulation completed')
-        print('Debug Statistics:')
-        print(f'Total calls processed: {handler_pool.debug_stats["calls_processed"]}')
-        print(f'Handlers added: {handler_pool.debug_stats["handlers_added"]}')
-        print(f'Handlers removed: {handler_pool.debug_stats["handlers_removed"]}')
-        print(f'Secretarial transitions: {handler_pool.debug_stats["secretarial_transitions"]}')
-        
     except Exception as e:
         st.error(f"Error in simulation: {str(e)}")
         print(f"Error in simulation: {str(e)}")
@@ -298,7 +260,6 @@ simulation_days = st.number_input("Number of Days to Simulate", min_value=1, val
 if st.button("Run Simulation"):
     try:
         with st.spinner("Running simulation..."):
-            print('Initializing simulation...')
             # Create environment first
             env = simpy.Environment()
             
@@ -306,11 +267,8 @@ if st.button("Run Simulation"):
             handler_pool = CallHandlerPool(env, morning_staff)
             
             # Run simulation
-            print('Starting simulation process...')
             env.process(run_simulation(handler_pool, daily_pattern, call_time_pattern, simulation_days))
-            print('Running simulation...')
             env.run()
-            print('Simulation run completed')
             
             # Process results
             if not handler_pool.wait_times:
@@ -321,12 +279,6 @@ if st.button("Run Simulation"):
             results_df = pd.DataFrame(handler_pool.wait_times)
             queue_df = pd.DataFrame(handler_pool.queue_lengths)
             
-            # Debug: Show the structure of our data
-            st.write("Debug: Call Results DataFrame columns:", results_df.columns.tolist())
-            st.write("Debug: First few rows of call data:", results_df.head())
-            st.write("Debug: Queue Length DataFrame columns:", queue_df.columns.tolist())
-            st.write("Debug: First few rows of queue data:", queue_df.head())
-                
             # Calculate statistics by time slot
             call_stats = results_df.groupby('time_slot').agg({
                 'wait_time': ['mean', 'std', 'count'],
